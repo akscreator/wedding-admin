@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin God Mode | Wedding OS</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        :root { --neon: #00f2ff; --pink: #ff00ff; --bg: #080a0f; }
+        body { font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: white; overflow: hidden; }
+        
+        .sidebar { width: 320px; background: #11141b; border-right: 1px solid #333; display: flex; flex-direction: column; z-index: 10; }
+        .header { padding: 25px; background: #1a1f2b; border-bottom: 1px solid #333; text-align: center; }
+        .header h2 { margin: 0; font-size: 16px; letter-spacing: 3px; color: var(--neon); }
+
+        .scroll-area { padding: 20px; flex-grow: 1; overflow-y: auto; }
+        .btn { width: 100%; padding: 14px; margin-bottom: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; text-transform: uppercase; font-size: 11px; }
+        .btn-edit { background: var(--neon); color: #000; box-shadow: 0 0 15px rgba(0, 242, 255, 0.3); }
+        .btn-fx { background: #222; color: #fff; border: 1px solid #444; }
+        .btn-fx:hover { border-color: var(--pink); color: var(--pink); }
+        .btn-pub { background: var(--pink); color: white; padding: 20px; font-size: 15px; border-radius: 0; margin-top: auto; }
+
+        .preview-pane { flex-grow: 1; background: #000; display: flex; align-items: center; justify-content: center; padding: 10px; }
+        iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 8px; }
+        
+        #console { background: #000; height: 100px; padding: 10px; font-family: monospace; font-size: 11px; color: #0f0; border-top: 1px solid #333; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="header"><h2>WEDDING ARCADE OS</h2></div>
+    <div class="scroll-area">
+        <button class="btn btn-edit" onclick="call('EDIT_MODE')">🛠️ TOGGLE DESIGNER</button>
+        <p style="font-size:10px; color:#888;">HOTKEYS: <b>Ctrl + Z</b> to Undo Changes</p>
+        
+        <p style="font-size:10px; color:var(--pink); margin-top:20px;">LIVE EFFECTS</p>
+        <button class="btn btn-fx" onclick="call('FX', {name:'confetti'})">🎊 Love Confetti</button>
+        <button class="btn btn-fx" onclick="call('FX', {name:'hearts'})">💕 Heart Rain</button>
+        <button class="btn btn-fx" onclick="call('FX', {name:'fireworks'})">🎆 Celebration</button>
+        <button class="btn btn-fx" onclick="call('FX', {name:'reset'})">🔄 Reset Site</button>
+    </div>
+    <div id="console">> System Ready...</div>
+    <button class="btn btn-pub" onclick="call('GET_DATA')">🚀 PUBLISH LIVE CHANGES</button>
+</div>
+
+<div class="preview-pane">
+    <iframe id="vFrame" src="viewer.html"></iframe>
+</div>
+
+<script>
+    const config = {
+        apiKey: "AIzaSyB4-6xPlJfxHMapg3lDkTdTwh8txC_a0tc",
+        databaseURL: "https://weddingarcade-46f47-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "weddingarcade-46f47"
+    };
+    firebase.initializeApp(config);
+    const db = firebase.database();
+
+    function call(type, data = {}) {
+        document.getElementById('vFrame').contentWindow.postMessage({type, ...data}, '*');
+    }
+
+    // Ctrl + Z Listener
+    window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'z') {
+            call('UNDO');
+            document.getElementById('console').innerHTML += "<br>> Undo performed.";
+        }
+    });
+
+    window.addEventListener('message', (e) => {
+        if(e.data.type === 'SENDING_DATA') {
+            db.ref('liveSiteData').set({
+                html: e.data.html,
+                bg: e.data.bg,
+                targetDate: e.data.targetDate
+            }).then(() => {
+                alert("Site Published Successfully!");
+                document.getElementById('console').innerHTML += "<br>> Database Updated.";
+            });
+        }
+    });
+</script>
+</body>
+</html>
